@@ -7,6 +7,7 @@ use App\Models\Industry;
 use App\Models\Skill;
 use App\Models\Year;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class DatasetController extends Controller
 {
@@ -64,11 +65,18 @@ class DatasetController extends Controller
             ->with('success', 'Dataset uploaded successfully!');
     }
 
-    public function download($id)
+    public function download(Dataset $dataset)
     {
-        // Logic to download the dataset file
-        // In a real application, this would retrieve the file path and return a download response
+        // Check if a file exists
+        if (!Storage::exists($dataset->file_path)) {
+            return back()->with('error', 'File not found.');
+        }
 
-        return response()->download(storage_path('app/datasets/sample.csv'));
+        // Get the original filename or use dataset name with extension
+        $pathInfo = pathinfo($dataset->file_path);
+        $filename = $dataset->name . '.' . ($pathInfo['extension'] ?? 'csv');
+
+        // Return file download
+        return Storage::download($dataset->file_path, $filename);
     }
 }
