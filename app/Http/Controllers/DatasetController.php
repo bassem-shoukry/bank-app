@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Dataset;
+use App\Models\DatasetFile;
 use App\Models\Industry;
 use App\Models\Skill;
 use App\Models\Year;
@@ -18,9 +19,9 @@ class DatasetController extends Controller
 
     public function create()
     {
-         $years = Year::pluck('year', 'id')->toArray();
-         $skills = Skill::pluck('name', 'id')->toArray();
-         $industries = Industry::pluck('name', 'id')->toArray();
+        $years = Year::pluck('year', 'id')->toArray();
+        $skills = Skill::pluck('name', 'id')->toArray();
+        $industries = Industry::pluck('name', 'id')->toArray();
 
         // Pass them to the view
         return view('datasets.create', compact('years', 'skills', 'industries'));
@@ -28,7 +29,6 @@ class DatasetController extends Controller
 
     public function store(Request $request)
     {
-
         // Validation logic
         $validated = $request->validate([
             'datasetName' => 'required|string|max:255',
@@ -38,45 +38,52 @@ class DatasetController extends Controller
             'skill_id' => 'required|string',
             'industry_id' => 'required|string',
             'datasetSize' => 'required|numeric',
-            'datasetFile' => 'required|file|max:102400' // 100MB max
+            'datasetFiles' => 'required|array',
+            'datasetFiles.*' => 'file', // 100MB max per file
         ]);
 
+        // Create the dataset
+        $dataset = Dataset::create([
+            'name' => $validated['datasetName'],
+            'user_id' => Auth()->user()->id,
+            'author' => $validated['author'],
+            'industry_id' => $validated['industry_id'],
+            'description' => $validated['datasetDescription'],
+            'year_id' => $validated['year_id'],
+            'size' => $validated['datasetSize'],
+            'skill_id' => $validated['skill_id'],
+        ]);
 
-//         Handle file upload (example, adjust the storage logic as needed)
-         $path = $request->file('datasetFile')->store('datasets');
+        // Handle multiple file uploads
+        if ($request->hasFile('datasetFiles')) {
+            foreach ($request->file('datasetFiles') as $file) {
+                $path = $file->store('datasets');
 
-//         Store the dataset in the database (example, adjust field names as needed)
-         Dataset::create([
-             'name'         => $validated['datasetName'],
-             'user_id' => Auth()->user()->id,
-             'author'       => $validated['author'],
-             'industry_id'     => $validated['industry_id'],
-             'description'  => $validated['datasetDescription'],
-             'year_id'      => $validated['year_id'],
-             'size'         => $validated['datasetSize'],
-             'skill_id'       => $validated['skill_id'],
-             'file_path'    => $path, // if file upload is implemented
-         ]);
-
-        // Store the dataset in the database and handle file upload
-        // This would be implemented with real storage logic
+                // Create file record
+                $dataset->files()->create([
+                    'file_name' => $file->getClientOriginalName(),
+                    'file_path' => $path,
+                    'file_type' => $file->getClientMimeType(),
+                    'file_size' => $file->getSize(),
+                ]);
+            }
+        }
 
         return redirect()->route('dashboard')
-            ->with('success', 'Dataset uploaded successfully!');
+            ->with('message', 'Admin will review the Data uploaded in 24 hrs.');
     }
 
-    public function download(Dataset $dataset)
+    // In DatasetController.php - rename this method
+    public function downloadFile($id)
     {
-        // Check if a file exists
-        if (!Storage::exists($dataset->file_path)) {
+        $file = DatasetFile::findOrFail($id);
+
+        // Check if file exists
+        if (!Storage::exists($file->file_path)) {
             return back()->with('error', 'File not found.');
         }
 
-        // Get the original filename or use dataset name with extension
-        $pathInfo = pathinfo($dataset->file_path);
-        $filename = $dataset->name . '.' . ($pathInfo['extension'] ?? 'csv');
-
         // Return file download
-        return Storage::download($dataset->file_path, $filename);
+        return Storage::download($file->file_path, $file->file_name);
     }
 }

@@ -10,6 +10,12 @@
         </div>
     @endif
 
+    @if (session()->has('error'))
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {{ session('error') }}
+        </div>
+    @endif
+
     <div class="mb-6 flex justify-between items-center">
         <div class="flex gap-2">
             <a href="{{ route('datasets.create') }}" class="bg-gray-100 border border-gray-300 py-2 px-4 hover:bg-gray-200 transition">
@@ -57,6 +63,7 @@
                     </select>
                 </th>
                 <th class="py-3 px-4 border-b border-gray-200 bg-gray-100 text-left">Size</th>
+                <th class="py-3 px-4 border-b border-gray-200 bg-gray-100 text-left">Files</th>
                 <th class="py-3 px-4 border-b border-gray-200 bg-gray-100 text-left">Actions</th>
             </tr>
             </thead>
@@ -70,22 +77,45 @@
                     <td class="py-3 px-4 border-b border-gray-200 text-center">{{ $dataset->year->year ?? 'N/A' }}</td>
                     <td class="py-3 px-4 border-b border-gray-200">{{ $dataset->formatSize() }}</td>
                     <td class="py-3 px-4 border-b border-gray-200">
+                        <div class="flex flex-col gap-1">
+                            @forelse($dataset->files as $file)
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm">{{ $file->file_name }}</span>
+                                    <a href="{{ route('datasets.download.file', $file->id) }}" class="text-blue-500 hover:text-blue-700" title="Download">
+                                        <i class="fa-solid fa-download"></i>
+                                    </a>
+                                </div>
+                            @empty
+                                @if($dataset->file_path)
+                                    <!-- Legacy support for datasets with a single file path -->
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-sm">File</span>
+                                        <a href="{{ route('datasets.download', $dataset) }}" class="text-blue-500 hover:text-blue-700" title="Download">
+                                            <i class="fa-solid fa-download"></i>
+                                        </a>
+                                    </div>
+                                @else
+                                    <span>No files</span>
+                                @endif
+                            @endforelse
+                        </div>
+                    </td>
+                    <td class="py-3 px-4 border-b border-gray-200">
                         <div class="flex gap-2">
-                            <a href="{{ route('datasets.download', $dataset) }}" class="text-blue-500 hover:text-blue-700" title="Download">
-                                <i class="fa-solid fa-download"></i>
-                            </a>
-                            <button
-                                wire:click="$dispatch('openModal', { component: 'modals.confirm-delete', arguments: { id: {{ $dataset->id }}, name: '{{ $dataset->name }}' }})"
-                                class="text-red-500 hover:text-red-700"
-                                title="Delete">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
+                            @if($dataset->user_id == Auth::id())
+                                <button
+                                    wire:click="$dispatch('openModal', { component: 'modals.confirm-delete', arguments: { id: {{ $dataset->id }}, name: '{{ $dataset->name }}' }})"
+                                    class="text-red-500 hover:text-red-700"
+                                    title="Delete">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            @endif
                         </div>
                     </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7" class="py-3 px-4 border-b border-gray-200 text-center">No datasets found</td>
+                    <td colspan="8" class="py-3 px-4 border-b border-gray-200 text-center">No datasets found</td>
                 </tr>
             @endforelse
             </tbody>

@@ -105,8 +105,8 @@
                         <!-- Dataset File Upload -->
                         <div>
                             <label for="datasetFile" class="block text-sm font-medium text-gray-700">Upload Dataset File</label>
-                            <input type="file" id="datasetFile" name="datasetFile" accept=".csv,.xlsx,.json,.txt,.png,.jpg,pdf"
-                                   class="mt-1 block w-full" required>
+                            <input type="file" id="datasetFile" name="datasetFiles[]" accept=".csv,.xlsx,.json,.txt,.png,.jpg,pdf"
+                                   class="mt-1 block w-full" multiple required>
                         </div>
 
                         <!-- Submit Button -->
