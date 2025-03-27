@@ -13,7 +13,11 @@
                     <section id="contact">
                         <div class="mb-8">
                             <h2 class="text-3xl font-bold mb-3">Get in touch</h2>
-                            <p class="text-gray-600">We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>
+                            <p class="text-gray-600">
+                                <a href="mailto:mohamedsalahsaad6@gmail.com" class="hover:underline">
+                                    mohamedsalahsaad6@gmail.com
+                                </a>
+                            </p>
                         </div>
 
                         <div class="flex flex-col md:flex-row md:space-x-8">

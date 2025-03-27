@@ -59,14 +59,15 @@ class Dataset extends Model
             return 'Unknown';
         }
 
-        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
-        $i = 0;
+        // Convert to MB (divide by 1024^2)
+        $sizeInMB = $size / 1048576;
 
-        while ($size >= 1024 && $i < count($units) - 1) {
-            $size /= 1024;
-            $i++;
-        }
+        // Return with MB unit
+        return round($sizeInMB, 2) . ' MB';
+    }
 
-        return round($size, 2) . ' ' . $units[$i];
+    public function files()
+    {
+        return $this->hasMany(DatasetFile::class);
     }
 }
