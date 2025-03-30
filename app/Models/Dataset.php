@@ -8,8 +8,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * @method static find($datasetId)
  * @method static create(array $array)
+ * @method static where(string $string, int|string|null $id)
  * @property mixed $file_path
  * @property mixed $name
+ * @property mixed $is_approved
+ * @property mixed $user_id
  */
 class Dataset extends Model
 {
@@ -21,7 +24,9 @@ class Dataset extends Model
         'industry_id',
         'year_id',
         'size',
-        'file_path',
+        'is_approved',
+        'approved_at',
+        'approved_by'
     ];
 
     /**
@@ -70,4 +75,16 @@ class Dataset extends Model
     {
         return $this->hasMany(DatasetFile::class);
     }
+
+    public function approver(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+
 }
