@@ -86,4 +86,16 @@ class DatasetController extends Controller
         // Return file download
         return Storage::download($file->file_path, $file->file_name);
     }
+
+
+    public function show(Dataset $dataset)
+    {
+        // Check if the dataset is approved or belongs to the current user
+        if (!$dataset->is_approved && auth()->id() !== $dataset->user_id) {
+            session()->flash('error', 'You do not have permission to view this dataset.');
+            return redirect()->route('dashboard');
+        }
+
+        return view('datasets.show', compact('dataset'));
+    }
 }

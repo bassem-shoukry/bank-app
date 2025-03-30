@@ -46,6 +46,9 @@ class DatasetDashboard extends Component
         // Start with a query builder instead of fetching all records
         $query = Dataset::query();
 
+        // Filter only approved datasets
+        $query->where('is_approved', true);
+
         // Apply search filter if provided
         if (!empty($this->searchTerm)) {
             $searchTerm = '%' . $this->searchTerm . '%';

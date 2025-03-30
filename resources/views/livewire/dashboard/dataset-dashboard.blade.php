@@ -102,6 +102,9 @@
                     </td>
                     <td class="py-3 px-4 border-b border-gray-200">
                         <div class="flex gap-2">
+                            <a href="{{ route('datasets.show', $dataset) }}" class="text-blue-500 hover:text-blue-700" title="View Details">
+                                <i class="fa-solid fa-eye"></i>
+                            </a>
                             @if($dataset->user_id == Auth::id())
                                 <button
                                     wire:click="$dispatch('openModal', { component: 'modals.confirm-delete', arguments: { id: {{ $dataset->id }}, name: '{{ $dataset->name }}' }})"
