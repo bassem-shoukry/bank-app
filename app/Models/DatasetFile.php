@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @method static findOrFail($fileId)
@@ -17,7 +18,7 @@ class DatasetFile extends Model
         'file_size',
     ];
 
-    public function dataset()
+    public function dataset(): BelongsTo
     {
         return $this->belongsTo(Dataset::class);
     }

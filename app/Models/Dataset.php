@@ -58,17 +58,7 @@ class Dataset extends Model
      */
     public function formatSize(): string
     {
-        $size = $this->size;
-
-        if (!$size) {
-            return 'Unknown';
-        }
-
-        // Convert to MB (divide by 1024^2)
-        $sizeInMB = $size / 1048576;
-
-        // Return with MB unit
-        return round($sizeInMB, 2) . ' MB';
+        return $this->size . ' MB';
     }
 
     public function files()

@@ -24,12 +24,30 @@ class DatasetResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')->required(),
-                Forms\Components\Textarea::make('description')->required(),
-                Forms\Components\Select::make('skill_id')->relationship('skill', 'name'),
-                Forms\Components\Select::make('industry_id')->relationship('industry', 'name'),
-                Forms\Components\Select::make('year_id')->relationship('year', 'year'),
-                Forms\Components\Toggle::make('is_approved')->label('Approved'),
+                Forms\Components\Section::make('Dataset Information')
+                    ->schema([
+                        Forms\Components\TextInput::make('name')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\Textarea::make('description')
+                            ->required(),
+                        Forms\Components\Select::make('skill_id')
+                            ->relationship('skill', 'name')
+                            ->required(),
+                        Forms\Components\Select::make('industry_id')
+                            ->relationship('industry', 'name')
+                            ->required(),
+                        Forms\Components\Select::make('year_id')
+                            ->relationship('year', 'year')
+                            ->required(),
+                        Forms\Components\TextInput::make('source')
+                            ->maxLength(255),
+                    ]),
+                
+                Forms\Components\Toggle::make('is_approved')
+                    ->label('Approved')
+                    ->default(false)
+                    ->visible(fn () => auth()->user()->can('approve datasets')),
             ]);
     }
 
@@ -42,6 +60,10 @@ class DatasetResource extends Resource
                 Tables\Columns\TextColumn::make('skill.name'),
                 Tables\Columns\TextColumn::make('industry.name'),
                 Tables\Columns\TextColumn::make('year.year'),
+                Tables\Columns\TextColumn::make('files_count')
+                    ->counts('files')
+                    ->label('Files')
+                    ->sortable(),
                 Tables\Columns\IconColumn::make('is_approved')
                     ->boolean()
                     ->label('Approved')
@@ -86,6 +108,11 @@ class DatasetResource extends Resource
                             'approved_by' => null,
                         ]);
                     }),
+                Tables\Actions\ViewAction::make()
+                    ->mutateRecordDataUsing(function (array $data): array {
+                        // You can make additional adjustments to the data here if needed
+                        return $data;
+                    }),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
@@ -111,7 +138,7 @@ class DatasetResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\DatasetFilesRelationManager::class,
         ];
     }
 
@@ -120,6 +147,7 @@ class DatasetResource extends Resource
         return [
             'index' => Pages\ListDatasets::route('/'),
             'create' => Pages\CreateDataset::route('/create'),
+            'view' => Pages\ViewDataset::route('/{record}'),
             'edit' => Pages\EditDataset::route('/{record}/edit'),
         ];
     }
