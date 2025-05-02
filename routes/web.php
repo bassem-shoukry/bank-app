@@ -5,6 +5,7 @@ use App\Http\Controllers\DatasetController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', 'login');
+Route::view('/terms', 'pages.terms')->name('terms');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DatasetController::class, 'index'])->name('dashboard');

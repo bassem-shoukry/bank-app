@@ -30,6 +30,7 @@ class UserResource extends Resource
                     ->email()
                     ->required()
                     ->maxLength(255),
+                Forms\Components\DatePicker::make('date_of_birth'),
                 Forms\Components\DateTimePicker::make('email_verified_at'),
                 Forms\Components\TextInput::make('password')
                     ->password()
@@ -38,6 +39,14 @@ class UserResource extends Resource
                     ->maxLength(255),
                 Forms\Components\Toggle::make('is_admin')
                     ->required(),
+                Forms\Components\Select::make('city_id')
+                    ->relationship('city', 'name'),
+                Forms\Components\Select::make('participant_type_id')
+                    ->relationship('participantType', 'name'),
+                Forms\Components\Select::make('industry_id')
+                    ->relationship('industry', 'name'),
+                Forms\Components\TextInput::make('institution')
+                    ->maxLength(255),
             ]);
     }
 
@@ -49,11 +58,23 @@ class UserResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('email')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('email_verified_at')
-                    ->dateTime()
+                Tables\Columns\TextColumn::make('date_of_birth')
+                    ->date()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('city.name')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('participantType.name')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('industry.name')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('institution')
+                    ->searchable(),
                 Tables\Columns\IconColumn::make('is_admin')
                     ->boolean(),
+                Tables\Columns\TextColumn::make('email_verified_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -64,7 +85,15 @@ class UserResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('city')
+                    ->relationship('city', 'name'),
+                Tables\Filters\SelectFilter::make('participant_type')
+                    ->relationship('participantType', 'name'),
+                Tables\Filters\SelectFilter::make('industry')
+                    ->relationship('industry', 'name'),
+                Tables\Filters\Filter::make('is_admin')
+                    ->query(fn (Builder $query): Builder => $query->where('is_admin', true))
+                    ->label('Admin Users Only'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
