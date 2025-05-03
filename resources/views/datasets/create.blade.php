@@ -32,9 +32,9 @@
                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
                         </div>
 
-                        <!-- Author -->
+                        <!-- Author - Changed from User to Data Owner -->
                         <div>
-                            <label for="author" class="block text-sm font-medium text-gray-700">User</label>
+                            <label for="author" class="block text-sm font-medium text-gray-700">Data Owner</label>
                             <input type="text" id="author" name="author" value="{{ old('author', Auth::user()->name) }}"
                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
                         </div>
@@ -67,17 +67,16 @@
                             @enderror
                         </div>
 
-                        <!-- Skill Select -->
+                        <!-- Skill Multi-Select -->
                         <div class="form-group">
-                            <label for="skill_id">Skill:</label>
-                            <select name="skill_id" id="skill_id" class="form-control">
-                                <option value="">-- Select Skill --</option>
+                            <label for="skill_id" class="block text-sm font-medium text-gray-700">Skill:</label>
+                            <select name="skill_id[]" id="skill_id" class="form-control mt-1 block w-full rounded-md border-gray-300 shadow-sm" multiple>
                                 @foreach($skills as $id => $skill)
-                                    <option value="{{ $id }}" {{ old('skill_id') == $id ? 'selected' : '' }}>{{ $skill }}</option>
+                                    <option value="{{ $id }}" {{ in_array($id, old('skill_id', [])) ? 'selected' : '' }}>{{ $skill }}</option>
                                 @endforeach
                             </select>
                             @error('skill_id')
-                            <div class="text-danger">{{ $message }}</div>
+                            <div class="text-danger mt-1 text-sm text-red-500">{{ $message }}</div>
                             @enderror
                         </div>
 
@@ -107,6 +106,32 @@
                             <label for="datasetFile" class="block text-sm font-medium text-gray-700">Upload Dataset File</label>
                             <input type="file" id="datasetFile" name="datasetFiles[]" accept=".csv,.xlsx,.json,.txt,.png,.jpg,pdf"
                                    class="mt-1 block w-full" multiple required>
+                        </div>
+
+                        <!-- Terms & Conditions Checkbox -->
+                        <div class="flex items-start">
+                            <div class="flex items-center h-5">
+                                <input id="terms" name="terms" type="checkbox"
+                                       class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded" required>
+                            </div>
+                            <div class="ml-3 text-sm">
+                                <label for="terms" class="font-medium text-gray-700">
+                                    I agree to the <a href="{{ route('terms') }}" target="_blank" class="text-indigo-600 hover:text-indigo-900 underline">Terms & Conditions and Privacy Policy</a> of this Data Bank platform, and consent to the storage and processing of my submitted data for research and analytical purposes.
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Communications Checkbox -->
+                        <div class="flex items-start">
+                            <div class="flex items-center h-5">
+                                <input id="communications" name="communications" type="checkbox"
+                                       class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
+                            </div>
+                            <div class="ml-3 text-sm">
+                                <label for="communications" class="font-medium text-gray-700">
+                                    I agree to receive updates or communications related to data bank initiatives (optional).
+                                </label>
+                            </div>
                         </div>
 
                         <!-- Submit Button -->

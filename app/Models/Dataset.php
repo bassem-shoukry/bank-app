@@ -4,66 +4,66 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 
-/**
- * @method static find($datasetId)
- * @method static create(array $array)
- * @method static where(string $string, int|string|null $id)
- * @property mixed $file_path
- * @property mixed $name
- * @property mixed $is_approved
- * @property mixed $user_id
- */
 class Dataset extends Model
 {
     protected $fillable = [
         'name',
-        'user_id',
         'description',
+        'user_id',
+        'author',
         'skill_id',
         'industry_id',
         'year_id',
         'size',
+        'file_path',
+        'source',
         'is_approved',
         'approved_at',
-        'approved_by'
+        'approved_by',
+        'communications_opt_in',
     ];
 
-    /**
-     * Get the skill associated with the dataset.
-     */
+    // Main skill relationship
     public function skill(): BelongsTo
     {
         return $this->belongsTo(Skill::class);
     }
 
-    /**
-     * Get the industry associated with the dataset.
-     */
+    // Additional skills (many-to-many)
+    public function skills(): BelongsToMany
+    {
+        return $this->belongsToMany(Skill::class, 'dataset_skill');
+    }
+
+    // Get all skills (primary + additional)
+    public function     getAllSkills(): Collection
+    {
+        // Start with the primary skill
+        $allSkills = [$this->skill];
+
+        // Add the related skills
+        $allSkills = array_merge($allSkills, $this->skills->all());
+
+        return collect($allSkills);
+    }
+
     public function industry(): BelongsTo
     {
         return $this->belongsTo(Industry::class);
     }
 
-    /**
-     * Get the year associated with the dataset.
-     */
     public function year(): BelongsTo
     {
         return $this->belongsTo(Year::class);
     }
 
-    /**
-     * Format the size to be more human-readable
-     */
-    public function formatSize(): string
+    public function user(): BelongsTo
     {
-        return $this->size . ' MB';
-    }
-
-    public function files()
-    {
-        return $this->hasMany(DatasetFile::class);
+        return $this->belongsTo(User::class);
     }
 
     public function approver(): BelongsTo
@@ -71,10 +71,17 @@ class Dataset extends Model
         return $this->belongsTo(User::class, 'approved_by');
     }
 
-    public function user(): BelongsTo
+    public function files(): HasMany
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->hasMany(DatasetFile::class);
     }
 
-
+    // Format file size for display
+    public function formatSize(): string
+    {
+        if ($this->size < 1) {
+            return round($this->size * 1024) . ' KB';
+        }
+        return $this->size . ' MB';
+    }
 }

@@ -25,12 +25,6 @@ class CountryResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),
-                Forms\Components\TextInput::make('code')
-                    ->required()
-                    ->maxLength(2)
-                    ->unique(ignoreRecord: true),
-                Forms\Components\Toggle::make('is_active')
-                    ->default(true),
             ]);
     }
 

@@ -35,11 +35,14 @@ class DatasetController extends Controller
             'author' => 'required|string|max:255',
             'datasetDescription' => 'required|string',
             'year_id' => 'required|integer',
-            'skill_id' => 'required|string',
+            'skill_id' => 'required|array', // Changed to array for multi-select
+            'skill_id.*' => 'exists:skills,id', // Validate each skill ID
             'industry_id' => 'required|string',
             'datasetSize' => 'required|numeric',
             'datasetFiles' => 'required|array',
             'datasetFiles.*' => 'file', // 100MB max per file
+            'terms' => 'required|accepted', // Validate terms acceptance
+            'communications' => 'nullable', // Optional communications preference
         ]);
 
         // Create the dataset
@@ -51,8 +54,16 @@ class DatasetController extends Controller
             'description' => $validated['datasetDescription'],
             'year_id' => $validated['year_id'],
             'size' => $validated['datasetSize'],
-            'skill_id' => $validated['skill_id'],
+            // Store the first skill ID in the main skill_id field
+            'skill_id' => $validated['skill_id'][0],
+            'communications_opt_in' => isset($validated['communications']),
         ]);
+
+        // Attach additional skills (for many-to-many relationship)
+        // You'll need to create a dataset_skill pivot table and relationship for this
+        if (count($validated['skill_id']) > 1) {
+            $dataset->skills()->attach(array_slice($validated['skill_id'], 1));
+        }
 
         // Handle multiple file uploads
         if ($request->hasFile('datasetFiles')) {
@@ -78,7 +89,7 @@ class DatasetController extends Controller
     {
         $file = DatasetFile::findOrFail($id);
 
-        // Check if file exists
+        // Check if a file exists
         if (!Storage::exists($file->file_path)) {
             return back()->with('error', 'File not found.');
         }
