@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 
+/**
+ * @method static create(array $array)
+ */
 class Dataset extends Model
 {
     protected $fillable = [

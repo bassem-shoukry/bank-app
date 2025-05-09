@@ -70,7 +70,7 @@ class DatasetController extends Controller
             foreach ($request->file('datasetFiles') as $file) {
                 $path = $file->store('datasets');
 
-                // Create file record
+                // Create a file record
                 $dataset->files()->create([
                     'file_name' => $file->getClientOriginalName(),
                     'file_path' => $path,
@@ -88,6 +88,13 @@ class DatasetController extends Controller
     public function downloadFile($id)
     {
         $file = DatasetFile::findOrFail($id);
+
+        // Check if the parent dataset is approved
+        if (!$file->dataset->is_approved) {
+            return response()->json([
+                'message' => 'This file cannot be downloaded as the dataset is pending approval'
+            ], 403);
+        }
 
         // Check if a file exists
         if (!Storage::exists($file->file_path)) {
