@@ -33,7 +33,13 @@ class DatasetResource extends Resource
                             ->required(),
                         Forms\Components\Select::make('skill_id')
                             ->relationship('skill', 'name')
+                            ->label('Primary Skill')
                             ->required(),
+                        Forms\Components\Select::make('skills')
+                            ->relationship('skills', 'name')
+                            ->multiple()
+                            ->label('Additional Skills')
+                            ->preload(),
                         Forms\Components\Select::make('industry_id')
                             ->relationship('industry', 'name')
                             ->required(),
@@ -43,7 +49,7 @@ class DatasetResource extends Resource
                         Forms\Components\TextInput::make('source')
                             ->maxLength(255),
                     ]),
-                
+
                 Forms\Components\Toggle::make('is_approved')
                     ->label('Approved')
                     ->default(false)
@@ -57,7 +63,13 @@ class DatasetResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('name')->searchable(),
                 Tables\Columns\TextColumn::make('description')->limit(50),
-                Tables\Columns\TextColumn::make('skill.name'),
+                Tables\Columns\TextColumn::make('skills')
+                    ->label('Skills')
+                    ->getStateUsing(function (Dataset $record): string {
+                        // Get primary skill + additional skills
+                        $allSkills = $record->getAllSkills()->pluck('name')->unique()->toArray();
+                        return implode(', ', $allSkills);
+                    }),
                 Tables\Columns\TextColumn::make('industry.name'),
                 Tables\Columns\TextColumn::make('year.year'),
                 Tables\Columns\TextColumn::make('files_count')
