@@ -43,20 +43,16 @@ class DatasetDashboard extends Component
 
     private function getDatasets()
     {
-        // Start with a query builder instead of fetching all records
         $query = Dataset::query();
 
-        // Filter only approved datasets
         $query->where('is_approved', true);
-
-        // Apply search filter if provided
         if (!empty($this->searchTerm)) {
             $searchTerm = '%' . $this->searchTerm . '%';
             $query->where(function($q) use ($searchTerm) {
                 $q->where('name', 'like', $searchTerm)
                     ->orWhere('description', 'like', $searchTerm)
                     ->orWhereHas('skills', function($query) use ($searchTerm) {
-                        $query->where('name', 'like', $searchTerm);
+                        $query->whereIn('name', $searchTerm);
                     })
                     ->orWhereHas('industry', function($query) use ($searchTerm) {
                         $query->where('name', 'like', $searchTerm);
@@ -64,24 +60,21 @@ class DatasetDashboard extends Component
             });
         }
 
-        // Apply skill filter if selected
+        // Updated skill filter
         if (!empty($this->selectedSkill)) {
             $query->whereHas('skills', function($query) {
                 $query->where('skills.id', $this->selectedSkill);
             });
         }
 
-        // Apply industry filter if selected
         if (!empty($this->selectedIndustry)) {
             $query->where('industry_id', $this->selectedIndustry);
         }
 
-        // Apply year filter if selected
         if (!empty($this->selectedYear)) {
             $query->where('year_id', $this->selectedYear);
         }
 
-        // Return paginated results (10 per page)
         return $query->paginate(10);
     }
 

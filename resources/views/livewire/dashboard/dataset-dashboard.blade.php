@@ -37,7 +37,8 @@
                 <th class="py-3 px-4 border-b border-gray-200 bg-gray-100 text-left">Description</th>
                 <th class="py-3 px-4 border-b border-gray-200 bg-gray-100">
                     <div>Skill</div>
-                    <select id="skill-select" wire:model.live="selectedSkill" multiple class="mt-1 block w-full py-1 px-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none">
+                    <select id="skill-select" wire:model.live="selectedSkill" class="mt-1 block w-full py-1 px-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none">
+                        <option value="">All Skills</option>
                         @foreach($skills as $value => $label)
                             <option value="{{ $value }}">{{ $label }}</option>
                         @endforeach
@@ -144,23 +145,21 @@
         });
 
         function initSelect2() {
-            // Store current selections
-            let selectedValues = $('#skill-select').val() || [];
-
             // Initialize select2
             $('#skill-select').select2({
-                placeholder: 'Select Skills',
+                placeholder: 'Select a Skill',
                 allowClear: true,
                 width: '100%'
             }).on('change', function (e) {
-                // Get the selected values and update the Livewire property
+                // Get the selected value and update the Livewire property
                 let data = $(this).val();
                 @this.set('selectedSkill', data);
             });
 
-            // Set the initial values if they exist in Livewire
-            if (@this.selectedSkill && @this.selectedSkill.length > 0) {
-                $('#skill-select').val(@this.selectedSkill).trigger('change');
+            // Set the initial value if it exists in Livewire
+            const currentSkill = @json($selectedSkill);
+            if (currentSkill) {
+                $('#skill-select').val(currentSkill).trigger('change');
             }
         }
     </script>
