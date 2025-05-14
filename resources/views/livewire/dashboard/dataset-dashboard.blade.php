@@ -37,8 +37,7 @@
                 <th class="py-3 px-4 border-b border-gray-200 bg-gray-100 text-left">Description</th>
                 <th class="py-3 px-4 border-b border-gray-200 bg-gray-100">
                     <div>Skill</div>
-                    <select wire:model.live="selectedSkill" class="mt-1 block w-full py-1 px-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none">
-                        <option value="">All Skills</option>
+                    <select id="skill-select" wire:model.live="selectedSkill" multiple class="mt-1 block w-full py-1 px-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none">
                         @foreach($skills as $value => $label)
                             <option value="{{ $value }}">{{ $label }}</option>
                         @endforeach
@@ -69,10 +68,13 @@
             </thead>
             <tbody>
             @forelse($datasets as $dataset)
+                @php
+                    $skillsAsStrings = $dataset->skills->pluck('name')->toArray() ?? [];
+                @endphp
                 <tr>
                     <td class="py-3 px-4 border-b border-gray-200">{{ $dataset->name }}</td>
                     <td class="py-3 px-4 border-b border-gray-200">{{ Str::limit($dataset->description, 50) }}</td>
-                    <td class="py-3 px-4 border-b border-gray-200 text-center">{{ $dataset->skill->name ?? 'N/A' }}</td>
+                    <td class="py-3 px-4 border-b border-gray-200 text-center">{{ implode(',',$skillsAsStrings)}}</td>
                     <td class="py-3 px-4 border-b border-gray-200 text-center">{{ $dataset->industry->name ?? 'N/A' }}</td>
                     <td class="py-3 px-4 border-b border-gray-200 text-center">{{ $dataset->year->year ?? 'N/A' }}</td>
                     <td class="py-3 px-4 border-b border-gray-200">{{ $dataset->formatSize() }}</td>
@@ -130,4 +132,36 @@
     <div class="mt-4">
         {{ $datasets->links() }}
     </div>
+
+    <script>
+        document.addEventListener('livewire:initialized', function () {
+            initSelect2();
+
+            // Re-initialize select2 when Livewire updates the DOM
+            Livewire.hook('morph.updated', () => {
+                initSelect2();
+            });
+        });
+
+        function initSelect2() {
+            // Store current selections
+            let selectedValues = $('#skill-select').val() || [];
+
+            // Initialize select2
+            $('#skill-select').select2({
+                placeholder: 'Select Skills',
+                allowClear: true,
+                width: '100%'
+            }).on('change', function (e) {
+                // Get the selected values and update the Livewire property
+                let data = $(this).val();
+                @this.set('selectedSkill', data);
+            });
+
+            // Set the initial values if they exist in Livewire
+            if (@this.selectedSkill && @this.selectedSkill.length > 0) {
+                $('#skill-select').val(@this.selectedSkill).trigger('change');
+            }
+        }
+    </script>
 </div>

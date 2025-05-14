@@ -67,10 +67,10 @@
                             @enderror
                         </div>
 
-                        <!-- Skill Multi-Select -->
+                        <!-- Skill Multi-Select with Select2 -->
                         <div class="form-group">
-                            <label for="skill_id" class="block text-sm font-medium text-gray-700">Skill:</label>
-                            <select name="skill_id[]" id="skill_id" class="form-control mt-1 block w-full rounded-md border-gray-300 shadow-sm" multiple>
+                            <label for="skill_id" class="block text-sm font-medium text-gray-700">Skills:</label>
+                            <select name="skill_id[]" id="skill_id" class="form-control mt-1 block w-full rounded-md border-gray-300 shadow-sm select2-multiple" multiple="multiple" style="width: 100%">
                                 @foreach($skills as $id => $skill)
                                     <option value="{{ $id }}" {{ in_array($id, old('skill_id', [])) ? 'selected' : '' }}>{{ $skill }}</option>
                                 @endforeach
@@ -146,4 +146,37 @@
             </div>
         </div>
     </div>
+
+    <!-- Initialize Select2 for multi-select skills -->
+    @push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.jQuery && $.fn.select2) {
+                $('.select2-multiple').select2({
+                    placeholder: "Click to select multiple skills",
+                    allowClear: true,
+                    width: '100%',
+                    dropdownCssClass: 'select2-dropdown',
+                    closeOnSelect: false,
+                    tags: false,
+                    tokenSeparators: [','],
+                    maximumSelectionLength: 10,
+                    language: {
+                        maximumSelected: function (e) {
+                            return "You can only select " + e.maximum + " skills";
+                        },
+                        noResults: function() {
+                            return "No skills found";
+                        },
+                        searching: function() {
+                            return "Searching...";
+                        }
+                    }
+                });
+            } else {
+                console.error('jQuery or Select2 not loaded');
+            }
+        });
+    </script>
+    @endpush
 </x-app-layout>
