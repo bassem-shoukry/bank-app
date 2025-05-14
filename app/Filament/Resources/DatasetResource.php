@@ -20,6 +20,11 @@ class DatasetResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['skills']);
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -31,15 +36,13 @@ class DatasetResource extends Resource
                             ->maxLength(255),
                         Forms\Components\Textarea::make('description')
                             ->required(),
-                        Forms\Components\Select::make('skill_id')
-                            ->relationship('skill', 'name')
-                            ->label('Primary Skill')
-                            ->required(),
                         Forms\Components\Select::make('skills')
                             ->relationship('skills', 'name')
                             ->multiple()
-                            ->label('Additional Skills')
-                            ->preload(),
+                            ->label('Skills')
+                            ->searchable()
+                            ->preload()
+                            ->required(),
                         Forms\Components\Select::make('industry_id')
                             ->relationship('industry', 'name')
                             ->required(),
@@ -48,6 +51,10 @@ class DatasetResource extends Resource
                             ->required(),
                         Forms\Components\TextInput::make('source')
                             ->maxLength(255),
+                        Forms\Components\TextInput::make('size')
+                            ->label('Size (MB)')
+                            ->numeric()
+                            ->default(0),
                     ]),
 
                 Forms\Components\Toggle::make('is_approved')
@@ -66,8 +73,8 @@ class DatasetResource extends Resource
                 Tables\Columns\TextColumn::make('skills')
                     ->label('Skills')
                     ->getStateUsing(function (Dataset $record): string {
-                        // Get primary skill + additional skills
-                        $allSkills = $record->skills()->pluck('name')->unique()->toArray();
+                        // Get all skills
+                        $allSkills = $record->getAllSkills()->pluck('name')->toArray();
                         return implode(', ', $allSkills);
                     }),
                 Tables\Columns\TextColumn::make('industry.name'),

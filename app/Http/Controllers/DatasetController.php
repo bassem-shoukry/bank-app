@@ -54,16 +54,11 @@ class DatasetController extends Controller
             'description' => $validated['datasetDescription'],
             'year_id' => $validated['year_id'],
             'size' => $validated['datasetSize'],
-            // Store the first skill ID in the main skill_id field
-            'skill_id' => $validated['skill_id'][0],
             'communications_opt_in' => isset($validated['communications']),
         ]);
 
-        // Attach additional skills (for many-to-many relationship)
-        // You'll need to create a dataset_skill pivot table and relationship for this
-        if (count($validated['skill_id']) > 1) {
-            $dataset->skills()->attach(array_slice($validated['skill_id'], 1));
-        }
+        // Attach all selected skills to the dataset
+        $dataset->skills()->attach($validated['skill_id']);
 
         // Handle multiple file uploads
         if ($request->hasFile('datasetFiles')) {

@@ -55,7 +55,7 @@ class DatasetDashboard extends Component
             $query->where(function($q) use ($searchTerm) {
                 $q->where('name', 'like', $searchTerm)
                     ->orWhere('description', 'like', $searchTerm)
-                    ->orWhereHas('skill', function($query) use ($searchTerm) {
+                    ->orWhereHas('skills', function($query) use ($searchTerm) {
                         $query->where('name', 'like', $searchTerm);
                     })
                     ->orWhereHas('industry', function($query) use ($searchTerm) {
@@ -66,7 +66,9 @@ class DatasetDashboard extends Component
 
         // Apply skill filter if selected
         if (!empty($this->selectedSkill)) {
-            $query->where('skill_id', $this->selectedSkill);
+            $query->whereHas('skills', function($query) {
+                $query->where('skills.id', $this->selectedSkill);
+            });
         }
 
         // Apply industry filter if selected

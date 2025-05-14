@@ -18,7 +18,6 @@ class Dataset extends Model
         'description',
         'user_id',
         'author',
-        'skill_id',
         'industry_id',
         'year_id',
         'size',
@@ -31,22 +30,16 @@ class Dataset extends Model
     ];
 
 
-    // Additional skills (many-to-many)
+    // Skills (many-to-many)
     public function skills(): BelongsToMany
     {
         return $this->belongsToMany(Skill::class, 'dataset_skill');
     }
 
-    // Get all skills (primary + additional)
-    public function     getAllSkills(): Collection
+    // Get all skills
+    public function getAllSkills(): Collection
     {
-        // Start with the primary skill
-        $allSkills = [$this->skill];
-
-        // Add the related skills
-        $allSkills = array_merge($allSkills, $this->skills->all());
-
-        return collect($allSkills);
+        return $this->skills;
     }
 
     public function industry(): BelongsTo
