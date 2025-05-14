@@ -26,7 +26,7 @@ class ViewDataset extends ViewRecord
                             ->label('Skills')
                             ->getStateUsing(function ($record): string {
                                 // Get primary skill + additional skills
-                                $allSkills = $record->getAllSkills()->pluck('name')->unique()->toArray();
+                                $allSkills = $record->skills()->pluck('name')->unique()->toArray();
                                 return implode(', ', $allSkills);
                             }),
                         TextEntry::make('industry.name')

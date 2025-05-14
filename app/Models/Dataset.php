@@ -30,11 +30,6 @@ class Dataset extends Model
         'communications_opt_in',
     ];
 
-    // Main skill relationship
-    public function skill(): BelongsTo
-    {
-        return $this->belongsTo(Skill::class);
-    }
 
     // Additional skills (many-to-many)
     public function skills(): BelongsToMany

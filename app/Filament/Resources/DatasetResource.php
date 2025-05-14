@@ -67,7 +67,7 @@ class DatasetResource extends Resource
                     ->label('Skills')
                     ->getStateUsing(function (Dataset $record): string {
                         // Get primary skill + additional skills
-                        $allSkills = $record->getAllSkills()->pluck('name')->unique()->toArray();
+                        $allSkills = $record->skills()->pluck('name')->unique()->toArray();
                         return implode(', ', $allSkills);
                     }),
                 Tables\Columns\TextColumn::make('industry.name'),
