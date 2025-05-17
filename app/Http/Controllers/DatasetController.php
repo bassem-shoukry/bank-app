@@ -39,6 +39,7 @@ class DatasetController extends Controller
             'skill_id.*' => 'exists:skills,id', // Validate each skill ID
             'industry_id' => 'required|string',
             'datasetSize' => 'required|numeric',
+            'source' => 'required|string',
             'datasetFiles' => 'required|array',
             'datasetFiles.*' => 'file', // 100MB max per file
             'terms' => 'required|accepted', // Validate terms acceptance
@@ -54,6 +55,7 @@ class DatasetController extends Controller
             'description' => $validated['datasetDescription'],
             'year_id' => $validated['year_id'],
             'size' => $validated['datasetSize'],
+            'source' => $validated['source'],
             'communications_opt_in' => isset($validated['communications']),
         ]);
 

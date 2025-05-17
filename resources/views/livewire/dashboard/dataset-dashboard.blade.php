@@ -35,6 +35,7 @@
             <tr>
                 <th class="py-3 px-4 border-b border-gray-200 bg-gray-100 text-left">Name</th>
                 <th class="py-3 px-4 border-b border-gray-200 bg-gray-100 text-left">Description</th>
+                <th class="py-3 px-4 border-b border-gray-200 bg-gray-100 text-left">Source</th>
                 <th class="py-3 px-4 border-b border-gray-200 bg-gray-100">
                     <div>Skill</div>
                     <select id="skill-select" wire:model.live="selectedSkill" class="mt-1 block w-full py-1 px-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none">
@@ -75,6 +76,7 @@
                 <tr>
                     <td class="py-3 px-4 border-b border-gray-200">{{ $dataset->name }}</td>
                     <td class="py-3 px-4 border-b border-gray-200">{{ Str::limit($dataset->description, 50) }}</td>
+                    <td class="py-3 px-4 border-b border-gray-200">{{ Str::limit($dataset->source, 50) }}</td>
                     <td class="py-3 px-4 border-b border-gray-200 text-center">{{ implode(',',$skillsAsStrings)}}</td>
                     <td class="py-3 px-4 border-b border-gray-200 text-center">{{ $dataset->industry->name ?? 'N/A' }}</td>
                     <td class="py-3 px-4 border-b border-gray-200 text-center">{{ $dataset->year->year ?? 'N/A' }}</td>
@@ -122,7 +124,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="8" class="py-3 px-4 border-b border-gray-200 text-center">No datasets found</td>
+                    <td colspan="9" class="py-3 px-4 border-b border-gray-200 text-center">No datasets found</td>
                 </tr>
             @endforelse
             </tbody>
