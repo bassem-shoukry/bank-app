@@ -18,8 +18,15 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="bg-gray-50 p-4 rounded">
                             <p><strong>User:</strong> {{ $dataset->user->name }}</p>
-                            <p><strong>Skill:</strong> {{ $dataset->skill->name ?? 'N/A' }}</p>
+                            <p><strong>Skills:</strong>
+                                @if($dataset->skills->count() > 0)
+                                    {{ $dataset->skills->pluck('name')->join(', ') }}
+                                @else
+                                    N/A
+                                @endif
+                            </p>
                             <p><strong>Industry:</strong> {{ $dataset->industry->name ?? 'N/A' }}</p>
+                            <p><strong>Source:</strong> {{ $dataset->source ?? 'N/A' }}</p>
                         </div>
                         <div class="bg-gray-50 p-4 rounded">
                             <p><strong>Year:</strong> {{ $dataset->year->year ?? 'N/A' }}</p>
