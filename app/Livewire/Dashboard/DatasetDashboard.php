@@ -47,12 +47,13 @@ class DatasetDashboard extends Component
 
         $query->where('is_approved', true);
         if (!empty($this->searchTerm)) {
-            $searchTerm = '%' . $this->searchTerm . '%';
+            $searchTerm = '%' . trim($this->searchTerm) . '%';
             $query->where(function($q) use ($searchTerm) {
                 $q->where('name', 'like', $searchTerm)
                     ->orWhere('description', 'like', $searchTerm)
+                    ->orWhere('source', 'like', $searchTerm)
                     ->orWhereHas('skills', function($query) use ($searchTerm) {
-                        $query->whereIn('name', $searchTerm);
+                        $query->where('name', 'like', $searchTerm);
                     })
                     ->orWhereHas('industry', function($query) use ($searchTerm) {
                         $query->where('name', 'like', $searchTerm);
