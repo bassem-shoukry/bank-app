@@ -15,8 +15,10 @@ use Illuminate\Database\Eloquent\Builder;
 class CountryResource extends Resource
 {
     protected static ?string $model = Country::class;
+
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-    protected static ?string $navigationGroup = 'heroicon-o-rectangle-stack';
+
+    protected static ?string $navigationGroup = 'Locations';
 
     public static function form(Form $form): Form
     {
