@@ -8,6 +8,7 @@ use App\Models\CaseType;
 use App\Models\Dataset;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class CaseRecordTest extends TestCase
@@ -178,5 +179,91 @@ class CaseRecordTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('قضية اختبار');
+    }
+
+    public function test_user_cannot_view_another_users_case_record(): void
+    {
+        $owner = User::factory()->create();
+        $other = User::factory()->create();
+        $dataset = Dataset::factory()->create(['user_id' => $owner->id, 'case_type_id' => $this->caseType->id]);
+
+        $response = $this->actingAs($other)->get(route('datasets.show', $dataset));
+
+        $response->assertForbidden();
+    }
+
+    public function test_admin_can_view_any_case_record(): void
+    {
+        $owner = User::factory()->create();
+        $admin = User::factory()->create(['is_admin' => true]);
+        $dataset = Dataset::factory()->create(['user_id' => $owner->id, 'name' => 'قضية اختبار', 'case_type_id' => $this->caseType->id]);
+
+        $response = $this->actingAs($admin)->get(route('datasets.show', $dataset));
+
+        $response->assertOk();
+        $response->assertSee('قضية اختبار');
+    }
+
+    public function test_dashboard_only_lists_the_current_users_case_records(): void
+    {
+        $user = User::factory()->create();
+        $other = User::factory()->create();
+        Dataset::factory()->create(['user_id' => $user->id, 'name' => 'قضيتي', 'case_type_id' => $this->caseType->id]);
+        Dataset::factory()->create(['user_id' => $other->id, 'name' => 'قضية غيري', 'case_type_id' => $this->caseType->id]);
+
+        $response = $this->actingAs($user)->get(route('dashboard'));
+
+        $response->assertSee('قضيتي');
+        $response->assertDontSee('قضية غيري');
+    }
+
+    public function test_admin_sees_every_case_record_on_the_dashboard(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        $other = User::factory()->create();
+        Dataset::factory()->create(['user_id' => $other->id, 'name' => 'قضية غيري', 'case_type_id' => $this->caseType->id]);
+
+        $response = $this->actingAs($admin)->get(route('dashboard'));
+
+        $response->assertSee('قضية غيري');
+    }
+
+    public function test_owner_can_delete_their_own_case_record(): void
+    {
+        $user = User::factory()->create();
+        $dataset = Dataset::factory()->create(['user_id' => $user->id, 'case_type_id' => $this->caseType->id]);
+
+        Livewire::actingAs($user)
+            ->test(DatasetDashboard::class)
+            ->call('deleteDataset', $dataset->id);
+
+        $this->assertDatabaseMissing('datasets', ['id' => $dataset->id]);
+    }
+
+    public function test_non_owner_cannot_delete_another_users_case_record(): void
+    {
+        $owner = User::factory()->create();
+        $other = User::factory()->create();
+        $dataset = Dataset::factory()->create(['user_id' => $owner->id, 'case_type_id' => $this->caseType->id]);
+
+        Livewire::actingAs($other)
+            ->test(DatasetDashboard::class)
+            ->call('deleteDataset', $dataset->id)
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('datasets', ['id' => $dataset->id]);
+    }
+
+    public function test_admin_can_delete_any_case_record(): void
+    {
+        $owner = User::factory()->create();
+        $admin = User::factory()->create(['is_admin' => true]);
+        $dataset = Dataset::factory()->create(['user_id' => $owner->id, 'case_type_id' => $this->caseType->id]);
+
+        Livewire::actingAs($admin)
+            ->test(DatasetDashboard::class)
+            ->call('deleteDataset', $dataset->id);
+
+        $this->assertDatabaseMissing('datasets', ['id' => $dataset->id]);
     }
 }

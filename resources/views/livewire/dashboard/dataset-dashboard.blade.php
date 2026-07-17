@@ -55,7 +55,7 @@
                                 <i class="fa-solid fa-eye"></i>
                             </a>
 
-                            @if($dataset->user_id == Auth::id())
+                            @if($dataset->user_id == Auth::id() || Auth::user()->is_admin)
                                 <button
                                     wire:click="$dispatch('openModal', { component: 'modals.confirm-delete', arguments: { id: {{ $dataset->id }}, name: '{{ $dataset->name }}' }})"
                                     class="text-red-500 hover:text-red-700"

@@ -36,8 +36,10 @@ class DatasetController extends Controller
             ->with('message', 'تم إضافة القضية بنجاح.');
     }
 
-    public function show(Dataset $dataset): View
+    public function show(Request $request, Dataset $dataset): View
     {
+        abort_unless($request->user()->can('view', $dataset), 403);
+
         $dataset->load('caseType');
 
         return view('datasets.show', compact('dataset'));

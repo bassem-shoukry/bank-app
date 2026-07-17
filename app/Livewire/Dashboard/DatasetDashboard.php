@@ -29,6 +29,10 @@ class DatasetDashboard extends Component
     {
         $query = Dataset::query()->with('caseType');
 
+        if (! auth()->user()->is_admin) {
+            $query->where('user_id', auth()->id());
+        }
+
         if (! empty($this->searchTerm)) {
             $searchTerm = '%'.trim($this->searchTerm).'%';
             $query->where(function ($q) use ($searchTerm): void {
@@ -55,10 +59,14 @@ class DatasetDashboard extends Component
     {
         $dataset = Dataset::find($id);
 
-        if ($dataset) {
-            $dataset->delete();
-
-            session()->flash('message', 'تم حذف القضية بنجاح.');
+        if (! $dataset) {
+            return;
         }
+
+        abort_unless(auth()->user()->can('delete', $dataset), 403);
+
+        $dataset->delete();
+
+        session()->flash('message', 'تم حذف القضية بنجاح.');
     }
 }

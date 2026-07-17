@@ -36,7 +36,7 @@
                         العودة إلى القائمة
                     </a>
 
-                    @if($dataset->user_id == auth()->id())
+                    @if($dataset->user_id == auth()->id() || auth()->user()->is_admin)
                         <button
                             onclick="Livewire.dispatch('openModal', { component: 'modals.confirm-delete', arguments: { id: {{ $dataset->id }}, name: '{{ $dataset->name }}' }})"
                             class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded">
