@@ -2,12 +2,11 @@
 
 namespace Tests\Feature\Filament;
 
+use App\Enums\PaymentStatus;
 use App\Filament\Widgets\DashboardOverview;
+use App\Models\CaseType;
 use App\Models\Dataset;
-use App\Models\Industry;
-use App\Models\ParticipantType;
 use App\Models\User;
-use App\Models\Year;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -24,28 +23,23 @@ class DashboardOverviewTest extends TestCase
         $admin = User::factory()->create(['is_admin' => true]);
         $this->actingAs($admin);
 
-        $industry = Industry::create(['name' => 'Technology', 'slug' => 'technology']);
-        $year = Year::create(['year' => 2026]);
-        ParticipantType::create(['name' => 'Academic', 'is_active' => true]);
+        $caseType = CaseType::factory()->create(['name' => 'مدني']);
 
         Dataset::create([
-            'name' => 'Test Dataset',
-            'description' => 'A dataset used for testing.',
+            'name' => 'Test Case',
+            'national_id' => '12345678901234',
+            'address' => 'Test Address',
+            'case_number' => '1',
+            'case_type_id' => $caseType->id,
+            'verdict' => 'Test verdict.',
+            'payment_status' => PaymentStatus::Unpaid,
             'user_id' => $admin->id,
-            'author' => $admin->name,
-            'industry_id' => $industry->id,
-            'year_id' => $year->id,
-            'size' => 1.5,
-            'source' => 'unit-test',
-            'is_approved' => false,
-            'communications_opt_in' => false,
         ]);
 
         Livewire::test(DashboardOverview::class)
-            ->assertSee('Datasets')
+            ->assertSee('القضايا')
             ->assertSee('Users')
-            ->assertSee('Industries')
-            ->assertSee('Participant Types')
+            ->assertSee('أنواع القضايا')
             ->assertSee('1');
     }
 }

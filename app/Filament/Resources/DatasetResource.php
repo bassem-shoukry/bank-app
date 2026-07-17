@@ -2,9 +2,10 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\PaymentStatus;
 use App\Filament\Resources\DatasetResource\Pages;
-use App\Filament\Resources\DatasetResource\RelationManagers;
 use App\Models\Dataset;
+use App\Rules\EgyptianNationalId;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -12,7 +13,6 @@ use Filament\Tables;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class DatasetResource extends Resource
 {
@@ -22,45 +22,57 @@ class DatasetResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->with(['skills']);
+        return parent::getEloquentQuery()->with(['caseType']);
     }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Dataset Information')
+                Forms\Components\Section::make('بيانات القضية')
                     ->schema([
                         Forms\Components\TextInput::make('name')
+                            ->label('الاسم')
                             ->required()
-                            ->maxLength(255),
-                        Forms\Components\Textarea::make('description')
-                            ->required(),
-                        Forms\Components\Select::make('skills')
-                            ->relationship('skills', 'name')
-                            ->multiple()
-                            ->label('Skills')
+                            ->maxLength(255)
+                            ->regex(Dataset::NAME_REGEX),
+                        Forms\Components\TextInput::make('national_id')
+                            ->label('الرقم القومي')
+                            ->required()
+                            ->mask('99999999999999')
+                            ->rules([new EgyptianNationalId]),
+                        Forms\Components\Textarea::make('address')
+                            ->label('العنوان')
+                            ->required()
+                            ->maxLength(1000),
+                        Forms\Components\TextInput::make('case_number')
+                            ->label('رقم القضيه')
+                            ->required()
+                            ->maxLength(100)
+                            ->regex(Dataset::CASE_NUMBER_REGEX),
+                        Forms\Components\Select::make('case_type_id')
+                            ->label('نوع القضيه')
+                            ->relationship('caseType', 'name')
+                            ->required()
                             ->searchable()
                             ->preload()
+                            ->createOptionForm([
+                                Forms\Components\TextInput::make('name')
+                                    ->label('نوع القضيه')
+                                    ->required()
+                                    ->maxLength(255)
+                                    ->unique('case_types', 'name')
+                                    ->regex(Dataset::NAME_REGEX),
+                            ]),
+                        Forms\Components\Textarea::make('verdict')
+                            ->label('الحكم')
+                            ->required()
+                            ->maxLength(5000),
+                        Forms\Components\Select::make('payment_status')
+                            ->label('السداد')
+                            ->options(PaymentStatus::class)
                             ->required(),
-                        Forms\Components\Select::make('industry_id')
-                            ->relationship('industry', 'name')
-                            ->required(),
-                        Forms\Components\Select::make('year_id')
-                            ->relationship('year', 'year')
-                            ->required(),
-                        Forms\Components\TextInput::make('source')
-                            ->maxLength(255),
-                        Forms\Components\TextInput::make('size')
-                            ->label('Size (MB)')
-                            ->numeric()
-                            ->default(0),
                     ]),
-
-                Forms\Components\Toggle::make('is_approved')
-                    ->label('Approved')
-                    ->default(false)
-                    ->visible(fn () => auth()->user()->can('approve datasets')),
             ]);
     }
 
@@ -68,87 +80,39 @@ class DatasetResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')->searchable(),
-                Tables\Columns\TextColumn::make('description')->limit(50),
-                Tables\Columns\TextColumn::make('skills')
-                    ->label('Skills')
-                    ->getStateUsing(function (Dataset $record): string {
-                        // Get all skills
-                        $allSkills = $record->getAllSkills()->pluck('name')->toArray();
-                        return implode(', ', $allSkills);
-                    }),
-                Tables\Columns\TextColumn::make('industry.name'),
-                Tables\Columns\TextColumn::make('year.year'),
-                Tables\Columns\TextColumn::make('files_count')
-                    ->counts('files')
-                    ->label('Files')
+                Tables\Columns\TextColumn::make('name')
+                    ->label('الاسم')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('national_id')
+                    ->label('الرقم القومي')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('case_number')
+                    ->label('رقم القضيه')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('caseType.name')
+                    ->label('نوع القضيه'),
+                Tables\Columns\TextColumn::make('payment_status')
+                    ->label('السداد')
+                    ->badge(),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('تاريخ الإضافة')
+                    ->dateTime()
                     ->sortable(),
-                Tables\Columns\IconColumn::make('is_approved')
-                    ->boolean()
-                    ->label('Approved')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('approved_at')
-                    ->dateTime(),
-                Tables\Columns\TextColumn::make('approver.name')
-                    ->label('Approved By'),
             ])
             ->filters([
-                Tables\Filters\Filter::make('pending')
-                    ->label('Pending Approval')
-                    ->query(fn (Builder $query): Builder => $query->where('is_approved', false)),
-                Tables\Filters\Filter::make('approved')
-                    ->label('Approved')
-                    ->query(fn (Builder $query): Builder => $query->where('is_approved', true)),
+                Tables\Filters\SelectFilter::make('payment_status')
+                    ->label('السداد')
+                    ->options(PaymentStatus::class),
+                Tables\Filters\SelectFilter::make('case_type_id')
+                    ->label('نوع القضيه')
+                    ->relationship('caseType', 'name'),
             ])
             ->actions([
-                Tables\Actions\Action::make('approve')
-                    ->label('Approve')
-                    ->icon('heroicon-o-check')
-                    ->color('success')
-                    // Only show if the dataset is NOT approved:
-                    ->visible(fn (Dataset $record): bool => !(bool)$record->is_approved)
-                    ->action(function (Dataset $record): void {
-                        $record->update([
-                            'is_approved' => true,
-                            'approved_at' => now(),
-                            'approved_by' => auth()->id(),
-                        ]);
-                    }),
-                Tables\Actions\Action::make('reject')
-                    ->label('Reject')
-                    ->icon('heroicon-o-x-mark')
-                    ->color('danger')
-                    // Only show if the dataset is approved:
-                    ->visible(fn (Dataset $record): bool => (bool)$record->is_approved)
-                    ->action(function (Dataset $record): void {
-                        $record->update([
-                            'is_approved' => false,
-                            'approved_at' => null,
-                            'approved_by' => null,
-                        ]);
-                    }),
-                Tables\Actions\ViewAction::make()
-                    ->mutateRecordDataUsing(function (array $data): array {
-                        // You can make additional adjustments to the data here if needed
-                        return $data;
-                    }),
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    Tables\Actions\BulkAction::make('approve_selected')
-                        ->label('Approve Selected')
-                        ->icon('heroicon-o-check')
-                        ->color('success')
-                        ->action(function (\Illuminate\Database\Eloquent\Collection $records): void {
-                            $records->each(function (Dataset $record): void {
-                                $record->update([
-                                    'is_approved' => true,
-                                    'approved_at' => now(),
-                                    'approved_by' => auth()->id(),
-                                ]);
-                            });
-                        }),
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
@@ -156,9 +120,7 @@ class DatasetResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            RelationManagers\DatasetFilesRelationManager::class,
-        ];
+        return [];
     }
 
     public static function getPages(): array

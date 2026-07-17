@@ -1,7 +1,7 @@
-<div>
+<div dir="rtl">
     <section class="description text-center">
-        <h2 class="text-3xl font-bold mb-2">Welcome to Data Bank</h2>
-        <p class="text-lg mb-8">Your next step to Data Science <br> Upload and share your Datasets with ease</p>
+        <h2 class="text-3xl font-bold mb-2">سجل القضايا</h2>
+        <p class="text-lg mb-8">إدارة بيانات القضايا</p>
     </section>
 
     @if (session()->has('message'))
@@ -19,13 +19,13 @@
     <div class="mb-6 flex justify-between items-center">
         <div class="flex gap-2">
             <a href="{{ route('datasets.create') }}" class="bg-gray-100 border border-gray-300 py-2 px-4 hover:bg-gray-200 transition">
-                Add New Data Set
+                إضافة قضية جديدة
             </a>
             <button wire:click="resetFilters" class="bg-red-50 border border-red-200 py-2 px-4 hover:bg-red-100 transition">
-                Reset Filters
+                إعادة تعيين البحث
             </button>
         </div>
-        <input wire:model.live="searchTerm" type="text" placeholder="Search datasets..."
+        <input wire:model.live="searchTerm" type="text" placeholder="بحث بالاسم أو الرقم القومي أو رقم القضية..."
                class="border border-gray-300 px-4 py-2 rounded w-1/3">
     </div>
 
@@ -33,81 +33,25 @@
         <table class="min-w-full bg-white">
             <thead>
             <tr>
-                <th class="py-3 px-4 border-b border-gray-200 bg-gray-100 text-left">Name</th>
-                <th class="py-3 px-4 border-b border-gray-200 bg-gray-100 text-left">Description</th>
-                <th class="py-3 px-4 border-b border-gray-200 bg-gray-100 text-left">Source</th>
-                <th class="py-3 px-4 border-b border-gray-200 bg-gray-100">
-                    <div>Skill</div>
-                    <select id="skill-select" wire:model.live="selectedSkill" class="mt-1 block w-full py-1 px-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none">
-                        <option value="">All Skills</option>
-                        @foreach($skills as $value => $label)
-                            <option value="{{ $value }}">{{ $label }}</option>
-                        @endforeach
-                    </select>
-                </th>
-                <th class="py-3 px-4 border-b border-gray-200 bg-gray-100">
-                    <div>Industry</div>
-                    <select wire:model.live="selectedIndustry" class="mt-1 block w-full py-1 px-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none">
-                        <option value="">All Industries</option>
-                        @foreach($industries as $value => $label)
-                            <option value="{{ $value }}">{{ $label }}</option>
-                        @endforeach
-                    </select>
-                </th>
-                <th class="py-3 px-4 border-b border-gray-200 bg-gray-100">
-                    <div>Year</div>
-                    <select wire:model.live="selectedYear" class="mt-1 block w-full py-1 px-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none">
-                        <option value="">All Years</option>
-                        @foreach($years as $value => $label)
-                            <option value="{{ $value }}">{{ $label }}</option>
-                        @endforeach
-                    </select>
-                </th>
-                <th class="py-3 px-4 border-b border-gray-200 bg-gray-100 text-left">Size</th>
-                <th class="py-3 px-4 border-b border-gray-200 bg-gray-100 text-left">Files</th>
-                <th class="py-3 px-4 border-b border-gray-200 bg-gray-100 text-left">Actions</th>
+                <th class="py-3 px-4 border-b border-gray-200 bg-gray-100 text-right">الاسم</th>
+                <th class="py-3 px-4 border-b border-gray-200 bg-gray-100 text-right">الرقم القومي</th>
+                <th class="py-3 px-4 border-b border-gray-200 bg-gray-100 text-right">رقم القضيه</th>
+                <th class="py-3 px-4 border-b border-gray-200 bg-gray-100 text-right">نوع القضيه</th>
+                <th class="py-3 px-4 border-b border-gray-200 bg-gray-100 text-right">السداد</th>
+                <th class="py-3 px-4 border-b border-gray-200 bg-gray-100 text-right">إجراءات</th>
             </tr>
             </thead>
             <tbody>
             @forelse($datasets as $dataset)
-                @php
-                    $skillsAsStrings = $dataset->skills->pluck('name')->toArray() ?? [];
-                @endphp
                 <tr>
                     <td class="py-3 px-4 border-b border-gray-200">{{ $dataset->name }}</td>
-                    <td class="py-3 px-4 border-b border-gray-200">{{ Str::limit($dataset->description, 50) }}</td>
-                    <td class="py-3 px-4 border-b border-gray-200">{{ Str::limit($dataset->source, 50) }}</td>
-                    <td class="py-3 px-4 border-b border-gray-200 text-center">{{ implode(',',$skillsAsStrings)}}</td>
-                    <td class="py-3 px-4 border-b border-gray-200 text-center">{{ $dataset->industry->name ?? 'N/A' }}</td>
-                    <td class="py-3 px-4 border-b border-gray-200 text-center">{{ $dataset->year->year ?? 'N/A' }}</td>
-                    <td class="py-3 px-4 border-b border-gray-200">{{ $dataset->formatSize() }}</td>
-                    <td class="py-3 px-4 border-b border-gray-200">
-                        <div class="flex flex-col gap-1">
-                            @forelse($dataset->files as $file)
-                                <div class="flex items-center gap-2">
-                                    <span class="text-sm">{{ $file->file_name }}</span>
-                                    <a href="{{ route('datasets.download.file', $file->id) }}" class="text-blue-500 hover:text-blue-700" title="Download">
-                                        <i class="fa-solid fa-download"></i>
-                                    </a>
-                                </div>
-                            @empty
-                                @if($dataset->file_path)
-                                    <!-- Legacy support for datasets with a single file path -->
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-sm">File</span>
-                                        <a href="{{ route('datasets.download', $dataset) }}" class="text-blue-500 hover:text-blue-700" title="Download">
-                                            <i class="fa-solid fa-download"></i>
-                                        </a>
-                                    </div>
-                                @else
-                                    <span>No files</span>
-                                @endif
-                            @endforelse
-                        </div>
-                    </td>
+                    <td class="py-3 px-4 border-b border-gray-200">{{ $dataset->national_id }}</td>
+                    <td class="py-3 px-4 border-b border-gray-200">{{ $dataset->case_number }}</td>
+                    <td class="py-3 px-4 border-b border-gray-200">{{ $dataset->caseType->name }}</td>
+                    <td class="py-3 px-4 border-b border-gray-200">{{ $dataset->payment_status->getLabel() }}</td>
                     <td class="py-3 px-4 border-b border-gray-200">
                         <div class="flex gap-2">
-                            <a href="{{ route('datasets.show', $dataset) }}" class="text-blue-500 hover:text-blue-700" title="View Details">
+                            <a href="{{ route('datasets.show', $dataset) }}" class="text-blue-500 hover:text-blue-700" title="عرض">
                                 <i class="fa-solid fa-eye"></i>
                             </a>
 
@@ -115,7 +59,7 @@
                                 <button
                                     wire:click="$dispatch('openModal', { component: 'modals.confirm-delete', arguments: { id: {{ $dataset->id }}, name: '{{ $dataset->name }}' }})"
                                     class="text-red-500 hover:text-red-700"
-                                    title="Delete">
+                                    title="حذف">
                                     <i class="fa-solid fa-trash"></i>
                                 </button>
                             @endif
@@ -124,7 +68,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="9" class="py-3 px-4 border-b border-gray-200 text-center">No datasets found</td>
+                    <td colspan="6" class="py-3 px-4 border-b border-gray-200 text-center">لا توجد قضايا</td>
                 </tr>
             @endforelse
             </tbody>
@@ -135,34 +79,4 @@
     <div class="mt-4">
         {{ $datasets->links() }}
     </div>
-
-    <script>
-        document.addEventListener('livewire:initialized', function () {
-            initSelect2();
-
-            // Re-initialize select2 when Livewire updates the DOM
-            Livewire.hook('morph.updated', () => {
-                initSelect2();
-            });
-        });
-
-        function initSelect2() {
-            // Initialize select2
-            $('#skill-select').select2({
-                placeholder: 'Select a Skill',
-                allowClear: true,
-                width: '100%'
-            }).on('change', function (e) {
-                // Get the selected value and update the Livewire property
-                let data = $(this).val();
-                @this.set('selectedSkill', data);
-            });
-
-            // Set the initial value if it exists in Livewire
-            const currentSkill = @json($selectedSkill);
-            if (currentSkill) {
-                $('#skill-select').val(currentSkill).trigger('change');
-            }
-        }
-    </script>
 </div>
