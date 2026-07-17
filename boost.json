@@ -1,0 +1,13 @@
+{
+    "agents": [
+        "claude_code"
+    ],
+    "editors": [
+        "claude_code"
+    ],
+    "guidelines": [
+        "filament/filament",
+        "livewire/volt"
+    ],
+    "herd_mcp": true
+}
